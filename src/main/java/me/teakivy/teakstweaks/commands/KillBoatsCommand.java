@@ -8,6 +8,7 @@ import io.papermc.paper.command.brigadier.Commands;
 import me.teakivy.teakstweaks.utils.command.AbstractCommand;
 import me.teakivy.teakstweaks.utils.permission.Permission;
 import me.teakivy.teakstweaks.utils.register.TTCommand;
+import me.teakivy.teakstweaks.utils.scheduler.RegionScanner;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
@@ -40,18 +41,23 @@ public class KillBoatsCommand extends AbstractCommand {
                 boatTypes.add(value);
             }
         }
-        int boats = 0;
-        for (World world : Bukkit.getWorlds()) {
-            for (Entity entity : world.getEntities()) {
-                if (!boatTypes.contains(entity.getType())) continue;
-                if (!entity.getPassengers().isEmpty()) continue;
+        List<World> worlds = Bukkit.getWorlds();
+        java.util.concurrent.atomic.AtomicInteger boats = new java.util.concurrent.atomic.AtomicInteger();
+        java.util.concurrent.atomic.AtomicInteger remaining = new java.util.concurrent.atomic.AtomicInteger(worlds.size());
+        for (World world : worlds) {
+            RegionScanner.forEachEntity(world, entity -> {
+                if (!boatTypes.contains(entity.getType())) return;
+                if (!entity.getPassengers().isEmpty()) return;
 
                 entity.remove();
-                boats++;
-            }
+                boats.incrementAndGet();
+            }, () -> {
+                if (remaining.decrementAndGet() == 0) {
+                    sender.sendMessage(getText("removed_boats", insert("count", boats.get())));
+                }
+            });
         }
 
-        sender.sendMessage(getText("removed_boats", insert("count", boats)));
         return Command.SINGLE_SUCCESS;
     }
 }

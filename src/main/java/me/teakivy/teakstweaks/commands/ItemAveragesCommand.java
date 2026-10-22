@@ -9,8 +9,8 @@ import me.teakivy.teakstweaks.packs.itemaverages.ItemAverages;
 import me.teakivy.teakstweaks.utils.command.AbstractCommand;
 import me.teakivy.teakstweaks.utils.permission.Permission;
 import me.teakivy.teakstweaks.utils.register.TTCommand;
+import me.teakivy.teakstweaks.utils.scheduler.RegionScanner;
 import org.bukkit.Location;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 public class ItemAveragesCommand extends AbstractCommand {
@@ -50,14 +50,13 @@ public class ItemAveragesCommand extends AbstractCommand {
 
     private int uninstall(CommandContext<CommandSourceStack> context) {
         Player player = (Player) context.getSource().getSender();
-        int count = 0;
-        for (Entity entity : player.getWorld().getEntities()) {
+        java.util.concurrent.atomic.AtomicInteger count = new java.util.concurrent.atomic.AtomicInteger();
+        RegionScanner.forEachEntity(player.getWorld(), entity -> {
             if (entity.getScoreboardTags().contains("tracker")) {
-                count++;
+                count.incrementAndGet();
                 entity.remove();
             }
-        }
-        player.sendMessage(getText("tracker_mass_removed", insert("count", count)));
+        }, () -> player.sendMessage(getText("tracker_mass_removed", insert("count", count.get()))));
         return Command.SINGLE_SUCCESS;
     }
 }

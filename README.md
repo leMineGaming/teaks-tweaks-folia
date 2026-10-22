@@ -14,6 +14,21 @@ for more customizable, and easy to use interfaces.
 Every Vanilla Tweaks Datapack & Crafting Tweak in the Plugin can be enabled inside
 `config.yml`.  
 
+### Folia Support
+This build targets **Folia 26.2** (Minecraft 26.2). The plugin declares `folia-supported: true` and
+uses Folia's region, entity, global-region, and async schedulers, so it is safe to run on a
+regionised server.
+
+A few features rely on Bukkit's scoreboard API, which Folia does not implement. Those features
+degrade gracefully:
+
+* **Count Mob Deaths**, **Track Statistics**, and **Track Raw Statistics** are disabled on Folia
+  (a warning is printed on startup) because Folia does not allow creating scoreboard objectives.
+* **AFK Display** uses the player list name instead of a scoreboard team.
+* **Spawning Spheres** still works, but the sphere markers cannot be colored with a team color.
+
+Use `./gradlew runFolia` to start a local Folia 26.2 server for testing.
+
 To Enable a datapack, find it in the `packs:` section, and change `enabled: false` to `enabled: true`.  
 After marking the tweak as true, restart the server to reload the packs. *(remember to save the file!)*
 #### Example:

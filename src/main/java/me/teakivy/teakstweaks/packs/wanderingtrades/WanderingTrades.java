@@ -1,10 +1,10 @@
 package me.teakivy.teakstweaks.packs.wanderingtrades;
 
-import me.teakivy.teakstweaks.TeaksTweaks;
 import me.teakivy.teakstweaks.packs.BasePack;
 import me.teakivy.teakstweaks.utils.UUIDUtils;
 import me.teakivy.teakstweaks.utils.config.Config;
 import me.teakivy.teakstweaks.utils.register.TTPack;
+import me.teakivy.teakstweaks.utils.scheduler.Scheduler;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -50,9 +50,9 @@ public class WanderingTrades extends BasePack {
             if (getConfig().getBoolean("player-heads.has-player-heads")) {
                 // Head Trade CompletableFuture
                 getHeadTrades().thenAccept((recipes1) -> {
-                    // Required to run on main thread
-                    Bukkit.getScheduler().runTask(TeaksTweaks.getInstance(), () -> {
-                        WanderingTrader trader = (WanderingTrader) event.getEntity();
+                    // The trader belongs to a region, so update its recipes on that region's thread.
+                    Scheduler.runFor(event.getEntity(), () -> {
+                        if (!(event.getEntity() instanceof WanderingTrader trader) || !trader.isValid()) return;
                         recipes.addAll(recipes1);
                         recipes.addAll(MiniBlocks.getBlockTrades());
                         recipes.addAll(trader.getRecipes());

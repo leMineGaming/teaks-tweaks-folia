@@ -1,11 +1,12 @@
 package me.teakivy.teakstweaks.packs.collectibleblocks;
 
-import me.teakivy.teakstweaks.TeaksTweaks;
 import me.teakivy.teakstweaks.packs.BasePack;
 import me.teakivy.teakstweaks.utils.register.TTPack;
-import org.bukkit.Bukkit;
+import me.teakivy.teakstweaks.utils.scheduler.Scheduler;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -53,10 +54,10 @@ public class CollectibleBlocks extends BasePack {
         Material blockType = event.getBlock().getType();
         if (includeAlwaysDropBlocks && alwaysDropBlocks.contains(event.getBlock().getType())) {
             event.setCancelled(true);
-            event.getBlock().setType(Material.AIR);
-            Bukkit.getScheduler().runTaskLater(TeaksTweaks.getInstance(), () -> {
-                event.getBlock().getWorld().dropItemNaturally(event.getBlock().getLocation().add(0.5, 0.5, 0.5), new ItemStack(blockType));
-            }, 1L);
+            Block block = event.getBlock();
+            Location location = block.getLocation().add(0.5, 0.5, 0.5);
+            block.setType(Material.AIR);
+            Scheduler.runAtLater(block.getLocation(), () -> block.getWorld().dropItemNaturally(location, new ItemStack(blockType)), 1L);
             return;
         }
 
@@ -64,10 +65,10 @@ public class CollectibleBlocks extends BasePack {
         if (includeSilkTouchBlocks && silkTouchBlocks.contains(event.getBlock().getType())) {
             if (handItem.containsEnchantment(Enchantment.SILK_TOUCH)) {
                 event.setCancelled(true);
-                event.getBlock().setType(Material.AIR);
-                Bukkit.getScheduler().runTaskLater(TeaksTweaks.getInstance(), () -> {
-                    event.getBlock().getWorld().dropItemNaturally(event.getBlock().getLocation().add(0.5, 0.5, 0.5), new ItemStack(blockType));
-                }, 1L);
+                Block block = event.getBlock();
+                Location location = block.getLocation().add(0.5, 0.5, 0.5);
+                block.setType(Material.AIR);
+                Scheduler.runAtLater(block.getLocation(), () -> block.getWorld().dropItemNaturally(location, new ItemStack(blockType)), 1L);
             }
         }
     }

@@ -12,9 +12,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Back extends BasePack {
 
@@ -22,7 +23,7 @@ public class Back extends BasePack {
         super(TTPack.BACK, Material.REDSTONE_TORCH);
     }
 
-    public static HashMap<UUID, Location> backLoc = new HashMap<>();
+    public static Map<UUID, Location> backLoc = new ConcurrentHashMap<>();
 
     public static void tpBack(Player player) {
         if (!Permission.COMMAND_BACK.check(player)) {

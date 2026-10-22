@@ -1,19 +1,19 @@
 package me.teakivy.teakstweaks.packs.tpa;
 
-import me.teakivy.teakstweaks.TeaksTweaks;
 import me.teakivy.teakstweaks.utils.config.Config;
 import me.teakivy.teakstweaks.utils.lang.OldTranslationManager;
+import me.teakivy.teakstweaks.utils.scheduler.Scheduler;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class TPAHandler {
-    private static final List<TPARequest> tpaRequests = new ArrayList<>();
+    private static final List<TPARequest> tpaRequests = new CopyOnWriteArrayList<>();
 
     public static List<TPARequest> getRequests() {
         return tpaRequests;
@@ -77,7 +77,8 @@ public class TPAHandler {
         Component senderMessage = MiniMessage.miniMessage().deserialize(getString(request.getType().getKey() + ".request_sent"), Placeholder.unparsed("player", target.getName()));
         sender.sendMessage(senderMessage);
 
-        Bukkit.getScheduler().scheduleSyncDelayedTask(TeaksTweaks.getInstance(), () -> {
+        // Expiry only touches in-memory state and sends messages, so it does not need a region.
+        Scheduler.runAsyncLater(() -> {
             if (request.isAccepted()) return;
 
             expireRequest(request);

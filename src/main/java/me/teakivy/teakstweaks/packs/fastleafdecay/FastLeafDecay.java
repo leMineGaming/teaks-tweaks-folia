@@ -1,8 +1,8 @@
 package me.teakivy.teakstweaks.packs.fastleafdecay;
 
-import me.teakivy.teakstweaks.TeaksTweaks;
 import me.teakivy.teakstweaks.packs.BasePack;
 import me.teakivy.teakstweaks.utils.register.TTPack;
+import me.teakivy.teakstweaks.utils.scheduler.Scheduler;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -12,6 +12,8 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.LeavesDecayEvent;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class FastLeafDecay extends BasePack {
 
@@ -24,7 +26,8 @@ public class FastLeafDecay extends BasePack {
         super(TTPack.FAST_LEAF_DECAY, Material.OAK_LEAVES);
     }
 
-    private final List<Block> scheduledBlocks = new ArrayList<>();
+    private final Set<Block> scheduledBlocks = ConcurrentHashMap.newKeySet();
+    private final AtomicBoolean oneByOneScheduled = new AtomicBoolean(false);
     private static final List<BlockFace> NEIGHBORS = Arrays
             .asList(BlockFace.UP,
                     BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST,
@@ -48,22 +51,21 @@ public class FastLeafDecay extends BasePack {
             return;
         }
         // No return
-        Collections.shuffle(NEIGHBORS);
-        for (BlockFace neighborFace: NEIGHBORS) {
+        List<BlockFace> faces = new ArrayList<>(NEIGHBORS);
+        Collections.shuffle(faces);
+        for (BlockFace neighborFace: faces) {
             final Block block = oldBlock.getRelative(neighborFace);
             if (!block.getType().toString().toLowerCase().contains("leaves")) continue;
             Leaves leaves = (Leaves) block.getBlockData();
             if (leaves.isPersistent()) continue;
             if (scheduledBlocks.contains(block)) continue;
             if (getConfig().getBoolean("one-by-one")) {
-                if (scheduledBlocks.isEmpty()) {
-                    TeaksTweaks.getInstance().getServer().getScheduler().runTaskLater(TeaksTweaks.getInstance(), this::decayOne, delay);
-                }
                 scheduledBlocks.add(block);
+                scheduleOneByOne(delay);
             } else {
-                TeaksTweaks.getInstance().getServer().getScheduler().runTaskLater(TeaksTweaks.getInstance(), () -> decay(block), delay);
+                scheduledBlocks.add(block);
+                Scheduler.runAtLater(block.getLocation(), () -> decay(block), delay);
             }
-            scheduledBlocks.add(block);
         }
     }
 
@@ -91,19 +93,25 @@ public class FastLeafDecay extends BasePack {
         block.breakNaturally();
         return true;
     }
+
+    private void scheduleOneByOne(long delay) {
+        if (!oneByOneScheduled.compareAndSet(false, true)) return;
+        Scheduler.runLater(this::decayOne, Math.max(1L, delay));
+    }
+
     private void decayOne() {
-        boolean decayed = false;
-        int loops = 0;
-        do {
-            if (loops++ > 100000) break;
-            if (scheduledBlocks.isEmpty()) return;
-            Block block = scheduledBlocks.getFirst();
-            decayed = decay(block); // Will remove block from list.
-        } while (!decayed);
-        if (!scheduledBlocks.isEmpty()) {
-            long delay = getConfig().getLong("decay-delay");
-            if (delay <= 0) delay = 1L;
-            TeaksTweaks.getInstance().getServer().getScheduler().runTaskLater(TeaksTweaks.getInstance(), this::decayOne, delay);
-        }
+        oneByOneScheduled.set(false);
+
+        Block block = scheduledBlocks.stream().findFirst().orElse(null);
+        if (block == null) return;
+
+        // The block belongs to a specific region, so the actual decay has to run there.
+        Scheduler.runAt(block.getLocation(), () -> {
+            decay(block);
+            if (!scheduledBlocks.isEmpty()) {
+                long delay = getConfig().getLong("decay-delay");
+                scheduleOneByOne(delay <= 0 ? 1L : delay);
+            }
+        });
     }
 }

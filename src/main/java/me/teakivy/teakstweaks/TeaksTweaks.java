@@ -12,6 +12,7 @@ import me.teakivy.teakstweaks.utils.papi.PAPIExpansion;
 import me.teakivy.teakstweaks.utils.permission.PermissionManager;
 import me.teakivy.teakstweaks.utils.recipe.RecipeManager;
 import me.teakivy.teakstweaks.utils.register.Register;
+import me.teakivy.teakstweaks.utils.scheduler.Scheduler;
 import me.teakivy.teakstweaks.utils.update.UpdateChecker;
 import me.teakivy.teakstweaks.utils.update.UpdateJoinAlert;
 import me.teakivy.teakstweaks.utils.update.VersionManager;
@@ -64,7 +65,7 @@ public final class TeaksTweaks extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new GUIListener(), this);
         getServer().getPluginManager().registerEvents(new RecipeManager(), this);
 
-        Bukkit.getScheduler().runTaskLater(this, UpdateChecker::sendUpdateMessage, 20L * 3);
+        Scheduler.runLater(UpdateChecker::sendUpdateMessage, 20L * 3);
 
 
         // Commands
@@ -83,7 +84,7 @@ public final class TeaksTweaks extends JavaPlugin implements Listener {
         }
 
         // Metrics
-        Bukkit.getScheduler().runTaskLater(this, () -> {
+        Scheduler.runLater(() -> {
             Metrics metrics = new Metrics(this, 12001);
             registerCustomMetrics(metrics);
         }, 20L * 30);

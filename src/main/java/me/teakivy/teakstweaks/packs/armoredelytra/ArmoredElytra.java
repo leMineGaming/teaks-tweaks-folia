@@ -1,6 +1,5 @@
 package me.teakivy.teakstweaks.packs.armoredelytra;
 
-import me.teakivy.teakstweaks.TeaksTweaks;
 import me.teakivy.teakstweaks.packs.BasePack;
 import me.teakivy.teakstweaks.utils.Base64Serializer;
 import me.teakivy.teakstweaks.utils.ItemSerializer;
@@ -26,7 +25,7 @@ import org.bukkit.inventory.EquipmentSlotGroup;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.scheduler.BukkitRunnable;
+import me.teakivy.teakstweaks.utils.scheduler.Scheduler;
 import org.bukkit.util.Vector;
 
 import java.io.IOException;
@@ -48,34 +47,31 @@ public class ArmoredElytra extends BasePack {
 
         if (!isChestplate(item.getType())) return;
 
-        new BukkitRunnable() {
-            @Override
-            public void run() {
+        Scheduler.runForTimer(itemDrop, task -> {
                 Material b = getBlockBelow(itemDrop.getLocation());
                 if (b != Material.ANVIL && b != Material.CHIPPED_ANVIL && b != Material.DAMAGED_ANVIL) return;
 
                 for (Entity entity : itemDrop.getNearbyEntities(1, 1, 1)) {
                     if (entity.getType() != EntityType.ITEM) continue;
 
-                    Item item = (Item) entity;
-                    if (item.getItemStack().getType() != Material.ELYTRA) continue;
-                    if (itemDrop.isDead() || item.isDead()) continue;
+                    Item otherItem = (Item) entity;
+                    if (otherItem.getItemStack().getType() != Material.ELYTRA) continue;
+                    if (itemDrop.isDead() || otherItem.isDead()) continue;
 
-                    item.remove();
+                    otherItem.remove();
                     itemDrop.remove();
-                    item.getWorld().spawnParticle(Particle.FLAME, item.getLocation(), 100, 0, 0, 0, .5);
+                    otherItem.getWorld().spawnParticle(Particle.FLAME, otherItem.getLocation(), 100, 0, 0, 0, .5);
 
                     player.playSound(player.getLocation(), Sound.BLOCK_ANVIL_USE, 1, 1);
 
-                    ItemStack newElytra = createArmoredElytra(item.getItemStack(), itemDrop.getItemStack());
+                    ItemStack newElytra = createArmoredElytra(otherItem.getItemStack(), itemDrop.getItemStack());
 
-                    item.getLocation().getWorld().dropItem(item.getLocation(), newElytra).setVelocity(new Vector(0, 0, 0));
+                    otherItem.getLocation().getWorld().dropItem(otherItem.getLocation(), newElytra).setVelocity(new Vector(0, 0, 0));
 
                 }
 
-                if (itemDrop.isDead()) this.cancel();
-            }
-        }.runTaskTimer(TeaksTweaks.getInstance(), 0, 20L);
+                if (itemDrop.isDead()) task.cancel();
+        }, 1L, 20L);
     }
 
     private Material getBlockBelow(Location location) {
@@ -88,9 +84,7 @@ public class ArmoredElytra extends BasePack {
         ItemStack itemStack = event.getItemDrop().getItemStack();
         if (!itemStack.hasItemMeta()) return;
         if (!itemStack.getItemMeta().getPersistentDataContainer().has(Key.get("armored_elytra"), PersistentDataType.STRING)) return;
-        new BukkitRunnable() {
-            @Override
-            public void run() {
+        Scheduler.runForTimer(event.getItemDrop(), task -> {
                 if (event.getItemDrop().getLocation().add(0, -1, 0).getBlock().getType().equals(Material.GRINDSTONE)) {
                     Item item = event.getItemDrop();
 //                    item.remove();
@@ -111,9 +105,8 @@ public class ArmoredElytra extends BasePack {
 
                     item.remove();
                 }
-                if (event.getItemDrop().isDead()) this.cancel();
-            }
-        }.runTaskTimer(TeaksTweaks.getInstance(), 0, 20L);
+                if (event.getItemDrop().isDead()) task.cancel();
+        }, 1L, 20L);
     }
 
     @EventHandler

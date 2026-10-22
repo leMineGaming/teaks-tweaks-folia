@@ -1,5 +1,6 @@
 package me.teakivy.teakstweaks.utils.recipe;
 
+import me.teakivy.teakstweaks.utils.scheduler.Scheduler;
 import org.bukkit.Bukkit;
 import org.bukkit.Keyed;
 import org.bukkit.NamespacedKey;
@@ -38,8 +39,12 @@ public class RecipeData {
 
     public void grantRecipe(Player player) {
         register();
-        if (player.hasDiscoveredRecipe(key)) return;
-        player.discoverRecipe(key);
+        // Discovering a recipe modifies player data, which belongs to the player's region.
+        Scheduler.runFor(player, () -> {
+            if (!player.isOnline()) return;
+            if (player.hasDiscoveredRecipe(key)) return;
+            player.discoverRecipe(key);
+        });
     }
 
     public void revokeRecipe() {
@@ -49,14 +54,16 @@ public class RecipeData {
     }
 
     public void revokeRecipe(Player player) {
-        if (!player.hasDiscoveredRecipe(key)) return;
-        player.undiscoverRecipe(key);
+        Scheduler.runFor(player, () -> {
+            if (!player.isOnline()) return;
+            if (!player.hasDiscoveredRecipe(key)) return;
+            player.undiscoverRecipe(key);
+        });
     }
 
     public void register() {
         if (Bukkit.getRecipe(key) != null) return;
         Bukkit.addRecipe(recipe);
-        grantRecipe();
     }
 
     public void unregister() {

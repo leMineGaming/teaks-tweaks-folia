@@ -1,9 +1,9 @@
 package me.teakivy.teakstweaks.packs.spawningspheres;
 
-import me.teakivy.teakstweaks.TeaksTweaks;
 import me.teakivy.teakstweaks.packs.BasePack;
 import me.teakivy.teakstweaks.utils.JsonManager;
 import me.teakivy.teakstweaks.utils.register.TTPack;
+import me.teakivy.teakstweaks.utils.scheduler.Scheduler;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -24,6 +24,7 @@ public class SpawningSpheres extends BasePack {
     public void init() {
         super.init();
 
+        SphereType.initTeams();
         LinkedHashMap<String, Object> json = getJson();
 
         redSphere = new SpawningSphere(json, SphereType.RED);
@@ -31,7 +32,7 @@ public class SpawningSpheres extends BasePack {
         greenSphere = new SpawningSphere(json, SphereType.GREEN);
     }
 
-    public static void save() {
+    public static synchronized void save() {
         LinkedHashMap<String, Object> json = new LinkedHashMap<>();
         json.putAll(redSphere.serialize());
         json.putAll(blueSphere.serialize());
@@ -40,7 +41,7 @@ public class SpawningSpheres extends BasePack {
         JsonManager.saveToFile(json, "data/spawning_spheres.json");
     }
 
-    public static boolean teleport(SphereType type, Player player) {
+    public static synchronized boolean teleport(SphereType type, Player player) {
         SpawningSphere sphere = getSphere(type);
 
         if (sphere == null) return false;
@@ -50,7 +51,7 @@ public class SpawningSpheres extends BasePack {
         return true;
     }
 
-    public static boolean summonSphere(SphereType type, Location location) {
+    public static synchronized boolean summonSphere(SphereType type, Location location) {
         SpawningSphere sphere = getSphere(type);
 
         if (sphere == null) return false;
@@ -62,7 +63,7 @@ public class SpawningSpheres extends BasePack {
         return true;
     }
 
-    public static boolean removeSphere(SphereType type, Player executor) {
+    public static synchronized boolean removeSphere(SphereType type, Player executor) {
         SpawningSphere sphere = getSphere(type);
 
         if (sphere == null) return false;
@@ -72,8 +73,8 @@ public class SpawningSpheres extends BasePack {
 
         executor.teleportAsync(sphere.getCenter());
 
-        Bukkit.getScheduler().runTaskLater(TeaksTweaks.getInstance(), sphere::removeSphere, 20L);
-        Bukkit.getScheduler().runTaskLater(TeaksTweaks.getInstance(), () -> {
+        Scheduler.runAtLater(sphere.getCenter(), sphere::removeSphere, 20L);
+        Scheduler.runForLater(executor, () -> {
             executor.teleportAsync(location);
             save();
         }, 20L * 3);

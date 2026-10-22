@@ -2,6 +2,7 @@ package me.teakivy.teakstweaks.packs.infestedvillagers;
 
 import me.teakivy.teakstweaks.packs.BasePack;
 import me.teakivy.teakstweaks.utils.register.TTPack;
+import me.teakivy.teakstweaks.utils.scheduler.Scheduler;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
@@ -40,7 +41,7 @@ public class InfestedVillagers extends BasePack {
             villager.zombify();
             return;
         }
-        Bukkit.getScheduler().runTaskLater(getPlugin(), () -> {
+        Scheduler.runForLater(villager, () -> {
             if (villager.isDead()) return;
             villager.shakeHead();
             villager.removePotionEffect(PotionEffectType.INFESTED);

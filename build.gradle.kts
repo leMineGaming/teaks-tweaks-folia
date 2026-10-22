@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "me.teakivy"
-version = "2.1.5"
+version = "2.2.0"
 description = "150+ Toggleable Tweaks & Features including Vanilla Tweaks as a plugin, and more!"
 java.sourceCompatibility = JavaVersion.VERSION_25
 
@@ -82,7 +82,7 @@ val libraries = listOf(
 
 dependencies {
     compileOnly("com.mojang:authlib:1.5.25")
-    compileOnly("io.papermc.paper:paper-api:26.2-rc-2.build.+")
+    compileOnly("dev.folia:folia-api:26.2.build.7-beta")
     compileOnly("me.clip:placeholderapi:2.11.6")
 
     libraries.forEach { library ->
@@ -132,8 +132,26 @@ tasks.shadowJar {
     destinationDirectory.set(file(customDir))
 }
 
+/**
+ * Copies the shaded plugin jar to build/release using a stable, release-friendly file name.
+ * Used by the GitHub Actions release workflow.
+ */
+tasks.register<Copy>("releaseJar") {
+    group = "build"
+    description = "Copies the shaded plugin jar to build/release as TeaksTweaks-v<version>.jar."
+    dependsOn(tasks.shadowJar)
+    from(tasks.shadowJar.flatMap { it.archiveFile })
+    into(layout.buildDirectory.dir("release"))
+    rename { "TeaksTweaks-v${project.version}.jar" }
+}
+
 tasks {
     runServer {
         minecraftVersion("26.2")
     }
+}
+
+// The plugin targets Folia; `runFolia` starts a Folia server for local testing.
+runPaper.folia.registerTask().configure {
+    minecraftVersion("26.2")
 }

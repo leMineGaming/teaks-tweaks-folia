@@ -1,6 +1,5 @@
 package me.teakivy.teakstweaks.packs.coordshud;
 
-import me.teakivy.teakstweaks.TeaksTweaks;
 import me.teakivy.teakstweaks.utils.config.Config;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
@@ -22,25 +21,23 @@ public class CoordsHudDisplay {
     }
 
     public static void showHud(Player player) {
-        Bukkit.getScheduler().runTaskAsynchronously(TeaksTweaks.getInstance(), () -> {
-            Location loc = player.getLocation().getBlock().getLocation();
-            if (Config.getBoolean("packs.coords-hud.use-player-position")) {
-                loc = player.getLocation();
-            }
+        Location loc = player.getLocation().getBlock().getLocation();
+        if (Config.getBoolean("packs.coords-hud.use-player-position")) {
+            loc = player.getLocation();
+        }
 
-            Location playerLocation = player.getLocation();
-            float playerDirection = playerLocation.getYaw();
-            String directionAbbr = getDirectionAbbr(playerDirection);
-            String worldTime = getWorldTime();
+        Location playerLocation = player.getLocation();
+        float playerDirection = playerLocation.getYaw();
+        String directionAbbr = getDirectionAbbr(playerDirection);
+        String worldTime = getWorldTime();
 
-            player.sendActionBar(MiniMessage.miniMessage().deserialize(
-                    hudMessage,
-                    Placeholder.parsed("x", loc.getBlockX() + ""),
-                    Placeholder.parsed("y", loc.getBlockY() + ""),
-                    Placeholder.parsed("z", loc.getBlockZ() + ""),
-                    Placeholder.parsed("direction", directionAbbr),
-                    Placeholder.parsed("world_time", worldTime)));
-        });
+        player.sendActionBar(MiniMessage.miniMessage().deserialize(
+                hudMessage,
+                Placeholder.parsed("x", loc.getBlockX() + ""),
+                Placeholder.parsed("y", loc.getBlockY() + ""),
+                Placeholder.parsed("z", loc.getBlockZ() + ""),
+                Placeholder.parsed("direction", directionAbbr),
+                Placeholder.parsed("world_time", worldTime)));
     }
 
     public static String getDirectionAbbr(float direction) {

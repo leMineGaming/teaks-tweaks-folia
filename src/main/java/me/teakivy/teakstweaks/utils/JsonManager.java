@@ -45,7 +45,7 @@ public class JsonManager {
         saveToFile(json, new File(TeaksTweaks.getInstance().getDataFolder() + "/" + path));
     }
 
-    public static void saveToFile(LinkedHashMap<String, Object> json, File file) {
+    public static synchronized void saveToFile(LinkedHashMap<String, Object> json, File file) {
         try {
             FileWriter writer = new FileWriter(file);
             TeaksTweaks.getGson().toJson(json, writer);

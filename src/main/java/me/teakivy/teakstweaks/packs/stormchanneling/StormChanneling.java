@@ -3,7 +3,7 @@ package me.teakivy.teakstweaks.packs.stormchanneling;
 import io.papermc.paper.event.entity.EntityMoveEvent;
 import me.teakivy.teakstweaks.packs.BasePack;
 import me.teakivy.teakstweaks.utils.register.TTPack;
-import org.bukkit.Bukkit;
+import me.teakivy.teakstweaks.utils.scheduler.Scheduler;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.enchantments.Enchantment;
@@ -40,10 +40,13 @@ public class StormChanneling extends BasePack {
         if (world.getEnvironment() != World.Environment.NORMAL) return;
         if (world.isThundering()) return;
         if (trident.getLocation().getY() > trident.getWorld().getMaxHeight()) {
-            world.setWeatherDuration(6000);
-            world.setThunderDuration(6000);
-            world.setStorm(true);
-            world.setThundering(true);
+            // Weather is owned by Folia's global region.
+            Scheduler.run(() -> {
+                world.setWeatherDuration(6000);
+                world.setThunderDuration(6000);
+                world.setStorm(true);
+                world.setThundering(true);
+            });
             world.strikeLightningEffect(trident.getLocation());
             ItemStack item = trident.getItemStack();
             Damageable damageable = (Damageable) item.getItemMeta();
@@ -54,7 +57,7 @@ public class StormChanneling extends BasePack {
             return;
         }
 
-        Bukkit.getScheduler().runTaskLater(getPlugin(), () -> tickTrident(trident), 1L);
+        Scheduler.runForLater(trident, () -> tickTrident(trident), 1L);
     }
 
     @EventHandler

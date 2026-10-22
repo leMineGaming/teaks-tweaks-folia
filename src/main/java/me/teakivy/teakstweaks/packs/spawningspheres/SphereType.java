@@ -7,6 +7,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import me.teakivy.teakstweaks.utils.log.Logger;
+import net.kyori.adventure.text.Component;
 
 public enum SphereType {
     RED,
@@ -71,31 +73,47 @@ public enum SphereType {
         return name.color(getColor());
     }
 
-    public Team getTeam() {
+    private static boolean teamsSupported = true;
+
+    public static void initTeams() {
+        try {
+            for (SphereType type : values()) {
+                type.createTeam();
+            }
+        } catch (UnsupportedOperationException exception) {
+            teamsSupported = false;
+            Logger.warning(Component.text("Spawning Spheres cannot color the sphere markers because Folia does not support the scoreboard API. The spheres will still work, but without their team colors."));
+        }
+    }
+
+    private Team createTeam() {
         Scoreboard sb = Bukkit.getScoreboardManager().getMainScoreboard();
-        return switch (this) {
-            case RED -> {
-                if (sb.getTeam("sphere_red") == null) {
-                    Team tTeam = sb.registerNewTeam("sphere_red");
-                    tTeam.setColor(ChatColor.RED);
-                }
-                yield sb.getTeam("sphere_red");
-            }
-            case BLUE -> {
-                if (sb.getTeam("sphere_blue") == null) {
-                    Team tTeam = sb.registerNewTeam("sphere_blue");
-                    tTeam.setColor(ChatColor.BLUE);
-                }
-                yield sb.getTeam("sphere_blue");
-            }
-            case GREEN -> {
-                if (sb.getTeam("sphere_green") == null) {
-                    Team tTeam = sb.registerNewTeam("sphere_green");
-                    tTeam.setColor(ChatColor.GREEN);
-                }
-                yield sb.getTeam("sphere_green");
-            }
-        };
+        String name = "sphere_" + getColorName();
+        Team team = sb.getTeam(name);
+        if (team != null) return team;
+
+        team = sb.registerNewTeam(name);
+        team.setColor(switch (this) {
+            case RED -> ChatColor.RED;
+            case BLUE -> ChatColor.BLUE;
+            case GREEN -> ChatColor.GREEN;
+        });
+        return team;
+    }
+
+    /**
+     * Get the scoreboard team used to color this sphere.
+     *
+     * @return the team, or null when the server does not support the scoreboard API (Folia)
+     */
+    public Team getTeam() {
+        if (!teamsSupported) return null;
+        try {
+            return createTeam();
+        } catch (UnsupportedOperationException exception) {
+            teamsSupported = false;
+            return null;
+        }
     }
 
     public static SphereType getSphereType(String name) {

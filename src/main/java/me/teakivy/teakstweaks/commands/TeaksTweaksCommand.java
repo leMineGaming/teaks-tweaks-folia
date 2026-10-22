@@ -23,6 +23,7 @@ import me.teakivy.teakstweaks.utils.log.PasteManager;
 import me.teakivy.teakstweaks.utils.log.PasteUploader;
 import me.teakivy.teakstweaks.utils.permission.Permission;
 import me.teakivy.teakstweaks.utils.register.TTCommand;
+import me.teakivy.teakstweaks.utils.scheduler.Scheduler;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -136,20 +137,22 @@ public class TeaksTweaksCommand extends AbstractCommand {
 
         String playerName = (sender instanceof Player) ? sender.getName() : "CONSOLE";
 
-        String paste = PasteManager.getPasteContent(playerName, logs);
-        try {
-            String url = PasteUploader.uploadToPastebin(paste, "Support: " + playerName);
-            if (sender instanceof Player) {
-                sender.sendMessage(getText("paste.success", insert("url", URLUtils.clickable(url)), insert("service_name", "Pastebin")));
-                return Command.SINGLE_SUCCESS;
+        // Uploading is blocking I/O, so it must not run on a region thread.
+        Scheduler.runAsync(() -> {
+            String paste = PasteManager.getPasteContent(playerName, logs);
+            try {
+                String url = PasteUploader.uploadToPastebin(paste, "Support: " + playerName);
+                if (sender instanceof Player) {
+                    sender.sendMessage(getText("paste.success", insert("url", URLUtils.clickable(url)), insert("service_name", "Pastebin")));
+                    return;
+                }
+                sender.sendMessage(getText("paste.success.console", insert("url", url), insert("service_name", "Pastebin")));
+            } catch (IOException e) {
+                sender.sendMessage(getText("paste.error", insert("service_name", "Pastebin")));
+                e.printStackTrace();
             }
-            sender.sendMessage(getText("paste.success.console", insert("url", url), insert("service_name", "Pastebin")));
-            return Command.SINGLE_SUCCESS;
-        } catch (IOException e) {
-            sender.sendMessage(getText("paste.error", insert("service_name", "Pastebin")));
-            e.printStackTrace();
-            return 0;
-        }
+        });
+        return Command.SINGLE_SUCCESS;
 
     }
 

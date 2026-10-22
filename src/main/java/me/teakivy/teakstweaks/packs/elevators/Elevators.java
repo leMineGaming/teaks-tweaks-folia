@@ -14,16 +14,17 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
+import me.teakivy.teakstweaks.utils.scheduler.Scheduler;
 
 import com.destroystokyo.paper.event.player.PlayerJumpEvent;
 
-import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Elevators extends BasePack {
-    private static final HashMap<UUID, Long> cooldown = new HashMap<>();
+    private static final Map<UUID, Long> cooldown = new ConcurrentHashMap<>();
     private final HashSet<Material> elevatorBlocks;
     private Material activatorMaterial;
 
@@ -47,18 +48,15 @@ public class Elevators extends BasePack {
         if (event.getItemDrop().getItemStack().getAmount() != 1) return;
         if (isElevator(event.getItemDrop().getLocation().add(0, -1, 0).getBlock())) return;
 
-        new BukkitRunnable() {
-            @Override
-            public void run() {
+        Scheduler.runForTimer(event.getItemDrop(), task -> {
                 if (!elevatorBlocks.contains(event.getItemDrop().getLocation().add(0, -1, 0).getBlock().getType())) return;
                 if (event.getItemDrop().getItemStack().getAmount() != 1) return;
 
                 event.getItemDrop().remove();
                 createElevator(event.getItemDrop().getLocation().add(0, -1, 0));
 
-                if (event.getItemDrop().isDead()) this.cancel();
-            }
-        }.runTaskTimer(getPlugin(), 0, 20L);
+                if (event.getItemDrop().isDead()) task.cancel();
+        }, 1L, 20L);
     }
 
     @EventHandler
@@ -113,7 +111,7 @@ public class Elevators extends BasePack {
         Block elevatorSpot = findNextElevatorUp(standingBlock);
         if (elevatorSpot == null) return;
 
-        Bukkit.getScheduler().scheduleSyncDelayedTask(getPlugin(), () -> {
+        Scheduler.runForLater(player, () -> {
             player.teleportAsync(new Location(loc.getWorld(), loc.getX(), elevatorSpot.getY() + 1, loc.getZ(), loc.getYaw(), loc.getPitch()));
             player.getWorld().spawnParticle(Particle.PORTAL, player.getLocation().add(0, 1, 0), 20, -.5, -.5, -.5, 4);
 

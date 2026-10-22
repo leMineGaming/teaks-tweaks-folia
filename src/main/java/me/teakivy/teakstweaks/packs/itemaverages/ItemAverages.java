@@ -1,11 +1,10 @@
 package me.teakivy.teakstweaks.packs.itemaverages;
 
-import me.teakivy.teakstweaks.TeaksTweaks;
 import me.teakivy.teakstweaks.packs.BasePack;
 import me.teakivy.teakstweaks.utils.log.Logger;
 import me.teakivy.teakstweaks.utils.register.TTPack;
+import me.teakivy.teakstweaks.utils.scheduler.Scheduler;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.*;
@@ -16,17 +15,19 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class ItemAverages extends BasePack {
-    public static boolean inUse = false;
-    public static Location tracking = null;
-    private static boolean shouldStop = false;
+    public static volatile boolean inUse = false;
+    public static volatile Location tracking = null;
+    private static volatile boolean shouldStop = false;
 
 
-    static ArrayList<Entity> itemsTracked = new ArrayList<>();
-    static HashMap<Material, Integer> items = new HashMap<>();
+    static List<Entity> itemsTracked = new CopyOnWriteArrayList<>();
+    static Map<Material, Integer> items = new ConcurrentHashMap<>();
 
     public ItemAverages() {
         super(TTPack.ITEM_AVERAGES, Material.HOPPER);
@@ -56,10 +57,14 @@ public class ItemAverages extends BasePack {
     }
 
     public static void trackItems(Player player) {
+        Location trackLocation = tracking;
+        if (trackLocation == null) return;
 
-        for (Entity entity : tracking.getWorld().getEntities()) {
+        // Nearby entities are region limited on Folia, and this tracker only cares about items on
+        // the block it was created on, so this is exactly the data we need.
+        for (Entity entity : trackLocation.getWorld().getNearbyEntities(trackLocation, 2, 2, 2)) {
             if (entity.getType() == EntityType.ITEM) {
-                if (entity.getLocation().getBlock().getLocation().distanceSquared(tracking) < 1 && !itemsTracked.contains(entity)) {
+                if (entity.getLocation().getBlock().getLocation().distanceSquared(trackLocation) < 1 && !itemsTracked.contains(entity)) {
                     if (!(entity instanceof Item)) continue;
                     ItemStack item = ((Item) entity).getItemStack();
                     itemsTracked.add(entity);
@@ -72,9 +77,7 @@ public class ItemAverages extends BasePack {
             }
         }
         if (!shouldStop) {
-            Bukkit.getScheduler().runTaskLater(TeaksTweaks.getInstance(), () -> {
-                trackItems(player);
-            }, 1L);
+            Scheduler.runAtLater(trackLocation, () -> trackItems(player), 1L);
             return;
         }
         shouldStop = false;
@@ -83,12 +86,12 @@ public class ItemAverages extends BasePack {
 
         sendTotaledMessage(player, items);
 
-        itemsTracked = new ArrayList<>();
-        items = new HashMap<>();
+        itemsTracked = new CopyOnWriteArrayList<>();
+        items = new ConcurrentHashMap<>();
     }
 
-    private static void sendTotaledMessage(Player player, HashMap<Material, Integer> items) {
-        HashMap<Material, Integer> totalItems = new HashMap<>();
+    private static void sendTotaledMessage(Player player, Map<Material, Integer> items) {
+        Map<Material, Integer> totalItems = new java.util.HashMap<>();
 
         items.forEach((item, amount) -> {
             totalItems.put(item, amount * 30);
@@ -124,7 +127,7 @@ public class ItemAverages extends BasePack {
         tracking = loc.getBlock().getLocation();
 
 
-        Bukkit.getScheduler().scheduleSyncDelayedTask(TeaksTweaks.getInstance(), () -> {
+        Scheduler.runForLater(entity, () -> {
             entity.remove();
             Logger.info(Component.translatable("item_averages.log_finish"));
             shouldStop = true;

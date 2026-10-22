@@ -57,7 +57,7 @@ public class ShrineCommand extends AbstractCommand {
         Player player = (Player) context.getSource().getSender();
         Entity shrine = null;
         for (Entity entity : player.getNearbyEntities(3, 3, 3)) {
-            if (ThunderShrine.getShrines().contains(entity)) {
+            if (ThunderShrine.isShrine(entity)) {
                 shrine = entity;
             }
         }
@@ -67,20 +67,19 @@ public class ShrineCommand extends AbstractCommand {
             return Command.SINGLE_SUCCESS;
         }
 
-        shrine.remove();
+        Location shrineLocation = shrine.getLocation();
+        ThunderShrine.removeShrine(shrine);
         player.sendMessage(getText("removed",
-                insert("x", shrine.getLocation().getBlockX()),
-                insert("y", shrine.getLocation().getBlockY()),
-                insert("z", shrine.getLocation().getBlockZ()),
-                insert("world", shrine.getLocation().getWorld().getName())));
+                insert("x", shrineLocation.getBlockX()),
+                insert("y", shrineLocation.getBlockY()),
+                insert("z", shrineLocation.getBlockZ()),
+                insert("world", shrineLocation.getWorld().getName())));
         return Command.SINGLE_SUCCESS;
     }
 
     private int uninstall(CommandContext<CommandSourceStack> context) {
         Player player = (Player) context.getSource().getSender();
-        for (Entity shrine : ThunderShrine.getShrines()) {
-            shrine.remove();
-        }
+        ThunderShrine.removeAllShrines();
         player.sendMessage(getText("shrines_mass_removed"));
         return Command.SINGLE_SUCCESS;
     }

@@ -11,13 +11,15 @@ import me.teakivy.teakstweaks.utils.command.AbstractCommand;
 import me.teakivy.teakstweaks.utils.customitems.TItem;
 import me.teakivy.teakstweaks.utils.permission.Permission;
 import me.teakivy.teakstweaks.utils.register.TTCommand;
+import me.teakivy.teakstweaks.utils.scheduler.RegionScanner;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+
+import java.util.List;
 
 public class GraveCommand extends AbstractCommand {
 
@@ -73,14 +75,17 @@ public class GraveCommand extends AbstractCommand {
 
     private int uninstall(CommandContext<CommandSourceStack> context) {
         Player player = (Player) context.getSource().getSender();
-        for (World world : Bukkit.getWorlds()) {
-            for (Entity entity : world.getEntities()) {
+        List<World> worlds = Bukkit.getWorlds();
+        java.util.concurrent.atomic.AtomicInteger remaining = new java.util.concurrent.atomic.AtomicInteger(worlds.size());
+        for (World world : worlds) {
+            RegionScanner.forEachEntity(world, entity -> {
                 if (entity.getScoreboardTags().contains("grave")) {
                     entity.remove();
                 }
-            }
+            }, () -> {
+                if (remaining.decrementAndGet() == 0) player.sendMessage(getText("removed_graves"));
+            });
         }
-        player.sendMessage(getText("removed_graves"));
         return Command.SINGLE_SUCCESS;
     }
 }

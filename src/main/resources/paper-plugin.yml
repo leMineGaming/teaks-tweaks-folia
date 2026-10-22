@@ -4,6 +4,7 @@ main: me.teakivy.teakstweaks.TeaksTweaks
 description: 150+ Toggleable Tweaks & Features including Vanilla Tweaks as a plugin, and more!
 api-version: 26.2
 bootstrapper: me.teakivy.teakstweaks.TeaksTweaksBootstrap
+folia-supported: true
 dependencies:
   - name: PlaceholderAPI
     required: false

@@ -1,8 +1,8 @@
 package me.teakivy.teakstweaks.packs.customnetherportals;
 
-import me.teakivy.teakstweaks.TeaksTweaks;
 import me.teakivy.teakstweaks.packs.BasePack;
 import me.teakivy.teakstweaks.utils.register.TTPack;
+import me.teakivy.teakstweaks.utils.scheduler.Scheduler;
 import org.bukkit.*;
 import org.bukkit.block.Biome;
 import org.bukkit.block.Block;
@@ -66,7 +66,7 @@ public class CustomNetherPortals extends BasePack {
     }
 
     @EventHandler
-    public void onBlockIgnite(BlockIgniteEvent event) throws NullPointerException {
+    public synchronized void onBlockIgnite(BlockIgniteEvent event) throws NullPointerException {
         Block block = event.getBlock();
         if (!this.endBiomes.contains(block.getBiome())) {
             this.validPortalBlocks.clear();
@@ -134,10 +134,11 @@ public class CustomNetherPortals extends BasePack {
 
                         }
 
-                        Bukkit.getScheduler().scheduleSyncDelayedTask(TeaksTweaks.getInstance(), () -> {
+                        String axis = this.portalAxis;
+                        Scheduler.runAtLater(block.getLocation(), () -> {
                             for (Block portalBlock : portalBlocks) {
                                 portalBlock.setType(Material.NETHER_PORTAL);
-                                if (portalAxis.equals("z")) {
+                                if ("z".equals(axis)) {
                                     Orientable rotatable = (Orientable) portalBlock.getBlockData();
                                     rotatable.setAxis(Axis.Z);
                                     portalBlock.setBlockData(rotatable);

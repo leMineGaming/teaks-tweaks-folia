@@ -1,10 +1,9 @@
 package me.teakivy.teakstweaks.packs.cauldronmud;
 
-import me.teakivy.teakstweaks.TeaksTweaks;
 import me.teakivy.teakstweaks.packs.BasePack;
 import me.teakivy.teakstweaks.utils.permission.Permission;
 import me.teakivy.teakstweaks.utils.register.TTPack;
-import org.bukkit.Bukkit;
+import me.teakivy.teakstweaks.utils.scheduler.Scheduler;
 import org.bukkit.Material;
 import org.bukkit.block.data.Levelled;
 import org.bukkit.event.EventHandler;
@@ -31,7 +30,7 @@ public class CauldronMud extends BasePack {
         Levelled levelled = (Levelled) event.getClickedBlock().getBlockData();
         if (levelled.getLevel() == 1 && getConfig().getBoolean("drops-water-level")) {
             event.getClickedBlock().setType(Material.BARRIER);
-            Bukkit.getScheduler().runTaskLater(TeaksTweaks.getInstance(), () -> event.getClickedBlock().setType(Material.CAULDRON), 1L);
+            Scheduler.runAtLater(event.getClickedBlock().getLocation(), () -> event.getClickedBlock().setType(Material.CAULDRON), 1L);
         }
 
         event.setCancelled(true);

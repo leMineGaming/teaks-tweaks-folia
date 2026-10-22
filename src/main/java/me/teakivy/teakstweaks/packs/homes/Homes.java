@@ -16,14 +16,16 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Homes extends BasePack {
 
-    private static final List<Home> homes = new ArrayList<>();
-    private static final HashMap<UUID, Long> cooldowns = new HashMap<>();
+    private static final List<Home> homes = new CopyOnWriteArrayList<>();
+    private static final Map<UUID, Long> cooldowns = new ConcurrentHashMap<>();
 
     public Homes() {
         super(TTPack.HOMES, Material.RECOVERY_COMPASS);

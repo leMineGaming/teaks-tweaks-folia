@@ -5,7 +5,7 @@ import me.teakivy.teakstweaks.packs.moremobheads.MoreMobHeads;
 import me.teakivy.teakstweaks.packs.moremobheads.abstractions.SpecialMobHead;
 import me.teakivy.teakstweaks.packs.moremobheads.types.TexturedHead;
 import me.teakivy.teakstweaks.utils.customitems.CustomItem;
-import org.bukkit.Bukkit;
+import me.teakivy.teakstweaks.utils.scheduler.Scheduler;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Creaking;
@@ -34,7 +34,7 @@ public class CreakingHead extends SpecialMobHead {
     public void onBreak(BlockBreakEvent event) {
         if (event.getBlock().getType() != Material.CREAKING_HEART) return;
         Creaking creaking = null;
-        List<Entity> entities = (List<Entity>) event.getBlock().getWorld().getNearbyEntities(event.getBlock().getLocation(), 64, 64, 64);
+        java.util.Collection<Entity> entities = event.getBlock().getWorld().getNearbyEntities(event.getBlock().getLocation(), 64, 64, 64);
 
         for (Entity entity : entities) {
             if (entity.getType() != EntityType.CREAKING) continue;
@@ -47,7 +47,7 @@ public class CreakingHead extends SpecialMobHead {
         if (creaking == null) return;
 
         Creaking finalCreaking = creaking;
-        Bukkit.getScheduler().runTaskLater(TeaksTweaks.getInstance(), () -> {
+        Scheduler.runForLater(finalCreaking, () -> {
             if (!MoreMobHeads.shouldDrop(event.getPlayer(), "creaking")) return;
             ItemStack headItem = MoreMobHeads.getHeadItem("creaking", Sound.BLOCK_CREAKING_HEART_SPAWN);
             finalCreaking.getWorld().dropItemNaturally(finalCreaking.getLocation(), headItem);

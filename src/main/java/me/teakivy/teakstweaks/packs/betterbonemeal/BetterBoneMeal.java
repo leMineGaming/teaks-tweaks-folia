@@ -3,6 +3,7 @@ package me.teakivy.teakstweaks.packs.betterbonemeal;
 import me.teakivy.teakstweaks.packs.BasePack;
 import me.teakivy.teakstweaks.utils.ParticleHelper;
 import me.teakivy.teakstweaks.utils.register.TTPack;
+import me.teakivy.teakstweaks.utils.scheduler.Scheduler;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -40,7 +41,7 @@ public class BetterBoneMeal extends BasePack {
             Material.GOLDEN_DANDELION
     );
 
-    private final Set<UUID> boneMealInteractions = new HashSet<>();
+    private final Set<UUID> boneMealInteractions = java.util.concurrent.ConcurrentHashMap.newKeySet();
 
     public BetterBoneMeal() {
         super(TTPack.BETTER_BONE_MEAL, Material.BONE_MEAL);
@@ -73,7 +74,7 @@ public class BetterBoneMeal extends BasePack {
             item.subtract(player.getGameMode() != GameMode.CREATIVE ? 1 : 0);
             boneMealInteractions.add(player.getUniqueId());
 
-            Bukkit.getScheduler().runTaskLater(getPlugin(), () -> boneMealInteractions.remove(player.getUniqueId()), 1L);
+            Scheduler.runLater(() -> boneMealInteractions.remove(player.getUniqueId()), 1L);
         }
 
     }
@@ -94,9 +95,7 @@ public class BetterBoneMeal extends BasePack {
             event.setCancelled(true);
             doBoneMealAnimation(block);
 
-            Bukkit.getScheduler().runTaskLater(getPlugin(), () -> {
-                removeBoneMealFromDispenser(dispenserBlock);
-            }, 1L);
+            Scheduler.runAtLater(dispenserBlock.getLocation(), () -> removeBoneMealFromDispenser(dispenserBlock), 1L);
         }
     }
 

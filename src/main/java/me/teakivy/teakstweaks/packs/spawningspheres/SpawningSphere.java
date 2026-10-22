@@ -1,9 +1,12 @@
 package me.teakivy.teakstweaks.packs.spawningspheres;
 
+import me.teakivy.teakstweaks.utils.scheduler.RegionScanner;
+import me.teakivy.teakstweaks.utils.scheduler.Scheduler;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -66,6 +69,12 @@ public class SpawningSphere {
     }
 
     private void summonStand(Location location, SphereIO sphereIO, boolean isCenter) {
+        // The sphere is much larger than a single region, so each stand is spawned on the region
+        // that owns its location.
+        Scheduler.runAt(location, () -> spawnStand(location, sphereIO, isCenter));
+    }
+
+    private void spawnStand(Location location, SphereIO sphereIO, boolean isCenter) {
         ArmorStand stand = (ArmorStand) location.getWorld().spawnEntity(location, EntityType.ARMOR_STAND);
 
         stand.setGravity(false);
@@ -85,14 +94,20 @@ public class SpawningSphere {
 
         stand.getEquipment().setHelmet(new ItemStack(sphereIO.getMaterial(type)));
 
-        type.getTeam().addEntry(stand.getUniqueId().toString());
+        org.bukkit.scoreboard.Team team = type.getTeam();
+        if (team != null) {
+            Scheduler.run(() -> team.addEntry(stand.getUniqueId().toString()));
+        }
     }
 
     public void removeSphere() {
-        for (Entity entity : center.getWorld().getEntities()) {
-            if (entity.getScoreboardTags().contains(type.getColorName() + "_sphere")) {
-                entity.remove();
-            }
+        World world = center.getWorld();
+        if (world != null) {
+            RegionScanner.forEachEntity(world, center, OUTER_RADIUS + 16, entity -> {
+                if (entity.getScoreboardTags().contains(type.getColorName() + "_sphere")) {
+                    entity.remove();
+                }
+            }, null);
         }
 
         inUse = false;

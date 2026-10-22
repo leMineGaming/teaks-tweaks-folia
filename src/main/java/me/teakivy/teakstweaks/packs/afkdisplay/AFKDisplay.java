@@ -1,13 +1,14 @@
 package me.teakivy.teakstweaks.packs.afkdisplay;
 
-import me.teakivy.teakstweaks.TeaksTweaks;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import me.teakivy.teakstweaks.packs.BasePack;
 import me.teakivy.teakstweaks.utils.log.Logger;
 import me.teakivy.teakstweaks.utils.config.Config;
 import me.teakivy.teakstweaks.utils.register.TTPack;
+import me.teakivy.teakstweaks.utils.scheduler.Scheduler;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -15,11 +16,10 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 
-import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class AFKDisplay extends BasePack {
 
@@ -33,102 +33,50 @@ public class AFKDisplay extends BasePack {
         register();
     }
 
-    public static HashMap<UUID, Boolean> afk = new HashMap<>();
-    static HashMap<UUID, Long> lastMove = new HashMap<>();
+    public static Map<UUID, Boolean> afk = new ConcurrentHashMap<>();
+    static Map<UUID, Long> lastMove = new ConcurrentHashMap<>();
 
-    static int afkTimer;
+    static ScheduledTask afkTimer;
 
     static long afkMinutes;
     static long kickAfter;
 
-    static Team afkTeam;
-
     public void register() {
-        registerTeam();
-
         afkMinutes = getConfig().getInt("afk-after");
         kickAfter = getConfig().getInt("kick-after");
 
-        if (getConfig().getBoolean("display-badge")) {
-            afkTeam.prefix(newText(getConfig().getString("badge")));
-        } else {
-            afkTeam.prefix(Component.text(""));
-        }
-
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (!afk.containsKey(player.getUniqueId())) {
-                afk.put(player.getUniqueId(), false);
-            }
-            if (!lastMove.containsKey(player.getUniqueId())) {
-                lastMove.put(player.getUniqueId(), System.currentTimeMillis());
-            }
+            afk.putIfAbsent(player.getUniqueId(), false);
+            lastMove.putIfAbsent(player.getUniqueId(), System.currentTimeMillis());
         }
 
-        afkTimer = Bukkit.getScheduler().runTaskTimer(TeaksTweaks.getInstance(), () -> {
-            afk.forEach((uuid, isAFK) -> {
-                Player player = Bukkit.getOfflinePlayer(uuid).getPlayer();
+        afkTimer = Scheduler.runTimer(() -> {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                UUID uuid = player.getUniqueId();
+                Boolean isAFK = afk.get(uuid);
+                if (isAFK == null) continue;
+
                 if (!isAFK) {
-                    if (player != null) {
-                        long currentTime = System.currentTimeMillis();
-                        if (lastMove.containsKey(uuid)) {
-                            if (lastMove.get(uuid) + (afkMinutes * 60 * 1000) < currentTime) {
-                                afk(player, false);
-                            }
-                        }
+                    Long last = lastMove.get(uuid);
+                    if (last != null && last + (afkMinutes * 60 * 1000) < System.currentTimeMillis()) {
+                        Scheduler.runFor(player, () -> afk(player, false));
                     }
-                } else {
-                    if (player != null) {
-                        if (kickAfter == 0) {
-                            player.kick(newText(getConfig().getString("kick-message")));
-                            AFKKickEvent afkKickEvent = new AFKKickEvent(player);
-                            Bukkit.getPluginManager().callEvent(afkKickEvent);
-                        }
-                        if (kickAfter > 0) {
-                            if (lastMove.get(uuid) + (afkMinutes * 60 * 1000) + (kickAfter * 60 * 1000) < System.currentTimeMillis()) {
-                                player.kick(newText(getConfig().getString("kick-message")));
-                                AFKKickEvent afkKickEvent = new AFKKickEvent(player);
-                                Bukkit.getPluginManager().callEvent(afkKickEvent);
-                            }
-                        }
-                    }
+                    continue;
                 }
-            });
-        }, 20L, 20L).getTaskId();
-    }
 
-    public static void registerTeam() {
-        Scoreboard sb = Bukkit.getScoreboardManager().getMainScoreboard();
-        if (sb.getTeam("AFK") == null) {
-            Team afk = sb.registerNewTeam("AFK");
-            String color = Config.getString("packs.afk-display.name-color");
-            if (color == null || !color.equals("none")) {
-                afkTeam = sb.getTeam("AFK");
-                return;
+                Long last = lastMove.get(uuid);
+                if (last == null) continue;
+                boolean shouldKick = kickAfter == 0
+                        || last + (afkMinutes * 60 * 1000) + (kickAfter * 60 * 1000) < System.currentTimeMillis();
+                if (shouldKick) {
+                    Scheduler.runFor(player, () -> {
+                        player.kick(newText(getConfig().getString("kick-message")));
+                        AFKKickEvent afkKickEvent = new AFKKickEvent(player);
+                        Bukkit.getPluginManager().callEvent(afkKickEvent);
+                    });
+                }
             }
-            afk.setColor(getColor(color));
-        }
-        afkTeam = sb.getTeam("AFK");
-    }
-
-    public static ChatColor getColor(String color) {
-        return switch (color) {
-            case "black" -> ChatColor.BLACK;
-            case "dark_blue" -> ChatColor.DARK_BLUE;
-            case "dark_green" -> ChatColor.DARK_GREEN;
-            case "dark_aqua" -> ChatColor.DARK_AQUA;
-            case "dark_red" -> ChatColor.DARK_RED;
-            case "dark_purple" -> ChatColor.DARK_PURPLE;
-            case "gold" -> ChatColor.GOLD;
-            case "gray" -> ChatColor.GRAY;
-            case "dark_gray" -> ChatColor.DARK_GRAY;
-            case "blue" -> ChatColor.BLUE;
-            case "green" -> ChatColor.GREEN;
-            case "aqua" -> ChatColor.AQUA;
-            case "red" -> ChatColor.RED;
-            case "light_purple" -> ChatColor.LIGHT_PURPLE;
-            case "yellow" -> ChatColor.YELLOW;
-            default -> ChatColor.WHITE;
-        };
+        }, 20L, 20L);
     }
 
     @EventHandler
@@ -150,8 +98,7 @@ public class AFKDisplay extends BasePack {
     public void onMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
-        if (Bukkit.getScoreboardManager().getMainScoreboard().getTeam("AFK") == null) registerTeam();
-        if (afk.get(uuid) || afkTeam.getEntries().contains(player.getName())) {
+        if (Boolean.TRUE.equals(afk.get(uuid))) {
             unAFK(player);
             return;
         }
@@ -161,31 +108,54 @@ public class AFKDisplay extends BasePack {
     @EventHandler
     public void chatEvent(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
-        if (afk.get(player.getUniqueId())) {
-            unAFK(player);
-        }
+        if (!Boolean.TRUE.equals(afk.get(player.getUniqueId()))) return;
+        // Chat events are fired asynchronously, so move the entity work onto the player's region.
+        Scheduler.runFor(player, () -> unAFK(player));
     }
 
     public static void afk(Player player, boolean fromCommand) {
-        if (!fromCommand && lastMove.get(player.getUniqueId()) + (afkMinutes * 60 * 1000) > System.currentTimeMillis()) return;
-        afkTeam.addEntry(player.getName());
+        Long last = lastMove.get(player.getUniqueId());
+        if (!fromCommand && last != null && last + (afkMinutes * 60 * 1000) > System.currentTimeMillis()) return;
+        if (Boolean.TRUE.equals(afk.get(player.getUniqueId()))) return;
+
         afk.put(player.getUniqueId(), true);
         displayAFKMessage(player, true);
-        Bukkit.getScheduler().runTask(TeaksTweaks.getInstance(), () -> {
-            AFKStatusChangeEvent afkEvent = new AFKStatusChangeEvent(player, true);
-            Bukkit.getPluginManager().callEvent(afkEvent);
-        });
+
+        // Folia does not support the main scoreboard API, so the AFK state is displayed through the
+        // player list name instead of a scoreboard team.
+        player.playerListName(displayName(player, true));
+
+        AFKStatusChangeEvent afkEvent = new AFKStatusChangeEvent(player, true);
+        Bukkit.getPluginManager().callEvent(afkEvent);
     }
 
     public static void unAFK(Player player) {
-        if (!afkTeam.getEntries().contains(player.getName())) return;
-        afkTeam.removeEntry(player.getName());
+        if (!Boolean.TRUE.equals(afk.get(player.getUniqueId()))) return;
+
         afk.put(player.getUniqueId(), false);
         displayAFKMessage(player, false);
-        Bukkit.getScheduler().runTask(TeaksTweaks.getInstance(), () -> {
-            AFKStatusChangeEvent afkEvent = new AFKStatusChangeEvent(player, false);
-            Bukkit.getPluginManager().callEvent(afkEvent);
-        });
+        player.playerListName(displayName(player, false));
+
+        AFKStatusChangeEvent afkEvent = new AFKStatusChangeEvent(player, false);
+        Bukkit.getPluginManager().callEvent(afkEvent);
+    }
+
+    private static Component displayName(Player player, boolean isAFK) {
+        Component name = Component.text(player.getName());
+        if (!isAFK) return name;
+
+        String color = Config.getString("packs.afk-display.name-color");
+        if (color != null && !color.equalsIgnoreCase("none")) {
+            NamedTextColor textColor = NamedTextColor.NAMES.value(color);
+            if (textColor != null) name = name.color(textColor);
+        }
+
+        if (Config.getBoolean("packs.afk-display.display-badge")) {
+            String badge = Config.getString("packs.afk-display.badge");
+            if (badge != null) name = newText(badge).append(name);
+        }
+
+        return name;
     }
 
     public static void displayAFKMessage(Player player, Boolean isAFK) {
@@ -223,14 +193,13 @@ public class AFKDisplay extends BasePack {
     @Override
     public void unregister() {
         super.unregister();
-        Bukkit.getScheduler().cancelTask(afkTimer);
+        Scheduler.cancel(afkTimer);
+        afkTimer = null;
     }
 
     public static void uninstall() {
-        Scoreboard sb = Bukkit.getScoreboardManager().getMainScoreboard();
-        Team afkTeam = sb.getTeam("AFK");
-        if (afkTeam != null) {
-            afkTeam.unregister();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            player.playerListName(Component.text(player.getName()));
         }
     }
 

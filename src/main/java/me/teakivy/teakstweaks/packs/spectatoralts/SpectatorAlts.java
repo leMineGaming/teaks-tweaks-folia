@@ -3,6 +3,7 @@ package me.teakivy.teakstweaks.packs.spectatoralts;
 import me.teakivy.teakstweaks.packs.BasePack;
 import me.teakivy.teakstweaks.utils.JsonManager;
 import me.teakivy.teakstweaks.utils.register.TTPack;
+import me.teakivy.teakstweaks.utils.scheduler.Scheduler;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -14,15 +15,16 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SpectatorAlts extends BasePack {
 
-    private static HashMap<UUID, UUID> alts;
+    private static Map<UUID, UUID> alts;
 
     public SpectatorAlts() {
         super(TTPack.SPECTATOR_ALTS, Material.ENDER_EYE);
 
-        alts = new HashMap<>();
+        alts = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -60,7 +62,7 @@ public class SpectatorAlts extends BasePack {
     }
 
     public static void addAlt(UUID owner, UUID alt) {
-        Bukkit.getOfflinePlayer(alt).setWhitelisted(true);
+        Scheduler.run(() -> Bukkit.getOfflinePlayer(alt).setWhitelisted(true));
         alts.put(alt, owner);
 
         LinkedHashMap<String, Object> map = JsonManager.getFromFile("data/alts.json");
@@ -81,7 +83,7 @@ public class SpectatorAlts extends BasePack {
     }
 
     public static void removeAlt(UUID alt) {
-        Bukkit.getOfflinePlayer(alt).setWhitelisted(false);
+        Scheduler.run(() -> Bukkit.getOfflinePlayer(alt).setWhitelisted(false));
         alts.remove(alt);
 
         LinkedHashMap<String, Object> map = JsonManager.getFromFile("data/alts.json");
@@ -99,8 +101,9 @@ public class SpectatorAlts extends BasePack {
 
         JsonManager.saveToFile(map, "data/alts.json");
 
-        if (Bukkit.getPlayer(alt) != null) {
-            Bukkit.getPlayer(alt).kickPlayer("");
+        Player altPlayer = Bukkit.getPlayer(alt);
+        if (altPlayer != null) {
+            Scheduler.runFor(altPlayer, () -> altPlayer.kickPlayer(""));
         }
     }
 

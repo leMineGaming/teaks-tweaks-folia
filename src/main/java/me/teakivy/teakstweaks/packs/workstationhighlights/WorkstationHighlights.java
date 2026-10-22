@@ -1,8 +1,9 @@
 package me.teakivy.teakstweaks.packs.workstationhighlights;
 
-import me.teakivy.teakstweaks.TeaksTweaks;
 import me.teakivy.teakstweaks.packs.BasePack;
 import me.teakivy.teakstweaks.utils.register.TTPack;
+import me.teakivy.teakstweaks.utils.scheduler.RegionScanner;
+import me.teakivy.teakstweaks.utils.scheduler.Scheduler;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -44,16 +45,16 @@ public class WorkstationHighlights extends BasePack {
         entity.addScoreboardTag("glowing");
 
 
-        Bukkit.getScheduler().scheduleSyncDelayedTask(TeaksTweaks.getInstance(), entity::remove, glowLength);
+        Scheduler.runForLater(entity, entity::remove, glowLength);
     }
 
     public static void clear() {
         for (World world : Bukkit.getWorlds()) {
-            for (LivingEntity entity : world.getLivingEntities()) {
+            RegionScanner.forEachEntity(world, entity -> {
                 if (entity.getScoreboardTags().contains("glowing")) {
                     entity.remove();
                 }
-            }
+            }, null);
         }
     }
 

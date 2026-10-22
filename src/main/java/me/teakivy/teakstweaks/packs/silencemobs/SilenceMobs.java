@@ -1,13 +1,11 @@
 package me.teakivy.teakstweaks.packs.silencemobs;
 
-import me.teakivy.teakstweaks.TeaksTweaks;
 import me.teakivy.teakstweaks.packs.BasePack;
 import me.teakivy.teakstweaks.utils.permission.Permission;
 import me.teakivy.teakstweaks.utils.register.TTPack;
-import org.bukkit.Bukkit;
+import me.teakivy.teakstweaks.utils.scheduler.Scheduler;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
@@ -16,7 +14,6 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.Objects;
-import java.util.UUID;
 
 public class SilenceMobs extends BasePack {
 
@@ -63,11 +60,10 @@ public class SilenceMobs extends BasePack {
         }
 
         try {
-            Bukkit.getScheduler().scheduleSyncDelayedTask(TeaksTweaks.getInstance(), () -> {
-                Entity entity1 = getEntityByUniqueId(entity.getUniqueId());
-                if (entity1 == null) return;
-                if (entity1.customName() == null) return;
-                if (entity1.getCustomName().replaceAll("_", " ")
+            Scheduler.runForLater(entity, () -> {
+                if (!entity.isValid()) return;
+                if (entity.customName() == null) return;
+                if (entity.getCustomName().replaceAll("_", " ")
                         .replaceAll("-", " ")
                         .trim()
                         .equalsIgnoreCase(getString("activation_name"))) {
@@ -106,11 +102,10 @@ public class SilenceMobs extends BasePack {
         }
 
         try {
-            Bukkit.getScheduler().scheduleSyncDelayedTask(TeaksTweaks.getInstance(), () -> {
-                Entity entity1 = getEntityByUniqueId(entity.getUniqueId());
-                if (entity1 == null) return;
-                if (entity1.customName() == null) return;
-                if (entity1.getCustomName().replaceAll("_", " ")
+            Scheduler.runForLater(entity, () -> {
+                if (!entity.isValid()) return;
+                if (entity.customName() == null) return;
+                if (entity.getCustomName().replaceAll("_", " ")
                         .replaceAll("-", " ")
                         .trim()
                         .equalsIgnoreCase(getString("deactivation_name"))) {
@@ -122,16 +117,6 @@ public class SilenceMobs extends BasePack {
         }
     }
 
-    public Entity getEntityByUniqueId(UUID uniqueId) {
-        for (World world : Bukkit.getWorlds()) {
-            for (Entity entity : world.getEntities()) {
-                if (entity.getUniqueId().equals(uniqueId))
-                    return entity;
-            }
-        }
-
-        return null;
-    }
 }
 
 

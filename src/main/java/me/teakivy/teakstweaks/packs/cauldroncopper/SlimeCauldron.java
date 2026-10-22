@@ -30,7 +30,8 @@ public class SlimeCauldron extends CustomCopperCauldron {
     }
 
     public static SlimeCauldron getCauldronAt(Location location) {
-        for (Marker marker : location.getWorld().getEntitiesByClass(Marker.class)) {
+        for (org.bukkit.entity.Entity entity : location.getWorld().getNearbyEntities(location, 1, 1, 1)) {
+            if (!(entity instanceof Marker marker)) continue;
             PersistentDataContainer data = marker.getPersistentDataContainer();
             if (!data.has(Key.get("custom_cauldron"), PersistentDataType.BOOLEAN)) continue;
             if (!data.has(Key.get("cauldron_type"), PersistentDataType.STRING)) continue;

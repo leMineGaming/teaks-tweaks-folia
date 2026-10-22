@@ -1,7 +1,9 @@
 package me.teakivy.teakstweaks.packs.trackrawstatistics;
 
 import me.teakivy.teakstweaks.packs.BasePack;
+import me.teakivy.teakstweaks.utils.log.Logger;
 import me.teakivy.teakstweaks.utils.register.TTPack;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.scoreboard.Objective;
@@ -19,6 +21,14 @@ public class TrackRawStatistics extends BasePack {
     public void init() {
         super.init();
         if (sb == null) sb = Objects.requireNonNull(Bukkit.getScoreboardManager()).getMainScoreboard();
+        try {
+            registerStats();
+        } catch (UnsupportedOperationException exception) {
+            Logger.warning(Component.text("Track Raw Statistics requires the scoreboard API, which Folia does not support. The pack has been disabled."));
+        }
+    }
+
+    private void registerStats() {
         registerStat( "ts_Deaths", "deathCount", "Deaths");
         registerStat( "ts_KillCount", "playerKillCount", "Kill Count");
         registerStat( "ts_TotalKills", "totalKillCount", "Total Kills");
