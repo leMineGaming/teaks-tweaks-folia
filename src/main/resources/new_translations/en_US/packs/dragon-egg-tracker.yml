@@ -1,0 +1,5 @@
+name: Dragon Egg Tracker
+description: >
+  Tracks the ender dragon egg and gives its holder a LuckPerms group.
+  Requires LuckPerms.
+  Command: /trackegg

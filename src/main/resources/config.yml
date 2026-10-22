@@ -403,6 +403,35 @@ packs:
       # The chance (0-100) that the dragon will drop a Dragon Egg
       chance: 100
 
+  # Dragon Egg Tracker
+  # Tracks the ender dragon egg and gives its holder a LuckPerms group.
+  # Requires LuckPerms.
+  #
+  # Commands:
+  #   /trackegg - Show where every known dragon egg currently is
+  dragon-egg-tracker:
+    enabled: false
+    # LuckPerms group given to players who own a dragon egg
+    group: egg-holder
+    # Create the LuckPerms group automatically if it does not exist
+    create-group: true
+    # How often (in seconds) online player inventories are checked
+    check-interval: 10
+    # Include the player's ender chest when checking for eggs
+    include-ender-chest: true
+    # Include shulker boxes and bundles inside the player's inventory
+    include-nested-containers: true
+    # Remove the group when a player no longer owns an egg
+    remove-group-when-lost: true
+    # Scan containers in loaded chunks for /trackegg
+    # This can be slow on servers with many loaded chunks
+    scan-containers: true
+    # Scan loaded chunks around online players for placed dragon egg blocks
+    scan-blocks: true
+    # Radius (in chunks) around each online player to scan for placed eggs
+    # Larger values take longer to scan
+    block-scan-radius: 3
+
   # Durability Ping
   # Get notified when you damage an item with 10% less durability.
   # Fully Customizable per-player with '/durabilityping config'

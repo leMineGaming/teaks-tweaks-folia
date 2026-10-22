@@ -125,8 +125,20 @@ public final class Scheduler {
      * Run a task on the region that currently owns an entity.
      */
     public static ScheduledTask runFor(Entity entity, Runnable task) {
-        if (entity == null) return null;
-        return entity.getScheduler().run(plugin(), ignored -> task.run(), null);
+        return runFor(entity, task, null);
+    }
+
+    /**
+     * Run a task on the region that currently owns an entity.
+     *
+     * @param retired run if the entity is removed before the task executes
+     */
+    public static ScheduledTask runFor(Entity entity, Runnable task, Runnable retired) {
+        if (entity == null) {
+            if (retired != null) retired.run();
+            return null;
+        }
+        return entity.getScheduler().run(plugin(), ignored -> task.run(), retired);
     }
 
     /**

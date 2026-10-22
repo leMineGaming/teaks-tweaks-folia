@@ -10,4 +10,4 @@ website: https://teakstweaks.com
 libraries:
   - ${libraries}
 
-softdepend: ["PlaceholderAPI"]
+softdepend: ["PlaceholderAPI", "LuckPerms"]

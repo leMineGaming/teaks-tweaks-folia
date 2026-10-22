@@ -27,6 +27,7 @@ public enum TTCommand {
     SPAWN("spawn", SpawnCommand.class, TTPack.SPAWN),
     SPAWNINGSPHERES("spawningspheres", SpawningSpheresCommand.class, TTPack.SPAWNING_SPHERES),
     SUDOKU("sudoku", SudokuCommand.class, TTPack.SUDOKU),
+    TRACKEGG("trackegg", TrackEggCommand.class, TTPack.DRAGON_EGG_TRACKER),
     TPA("tpa", TPACommand.class, TTPack.TPA),
     TPAHERE("tpahere", TPAHereCommand.class, TTPack.TPA),
     WORKSTATIONHIGHLIGHT("workstationhighlight", WorkstationHighlightCommand.class, TTPack.WORKSTATION_HIGHLIGHTS),
@@ -87,6 +88,7 @@ public enum TTCommand {
     }
 
     public boolean isEnabled() {
+        if (parentPack != null && !parentPack.isAvailable()) return false;
         return getCommand().isEnabled();
     }
 

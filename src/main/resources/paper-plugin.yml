@@ -9,3 +9,6 @@ dependencies:
   - name: PlaceholderAPI
     required: false
     load: SERVER
+  - name: LuckPerms
+    required: false
+    load: SERVER

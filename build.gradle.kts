@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "me.teakivy"
-version = "2.2.0"
+version = "2.3.0"
 description = "150+ Toggleable Tweaks & Features including Vanilla Tweaks as a plugin, and more!"
 java.sourceCompatibility = JavaVersion.VERSION_25
 
@@ -84,6 +84,7 @@ dependencies {
     compileOnly("com.mojang:authlib:1.5.25")
     compileOnly("dev.folia:folia-api:26.2.build.7-beta")
     compileOnly("me.clip:placeholderapi:2.11.6")
+    compileOnly("net.luckperms:api:5.5")
 
     libraries.forEach { library ->
         compileOnly(library)

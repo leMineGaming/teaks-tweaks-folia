@@ -28,6 +28,7 @@ import me.teakivy.teakstweaks.packs.dirttograss.DirtToGrass;
 import me.teakivy.teakstweaks.packs.disposal.Disposal;
 import me.teakivy.teakstweaks.packs.doubleshulkershells.DoubleShulkerShells;
 import me.teakivy.teakstweaks.packs.dragondrops.DragonDrops;
+import me.teakivy.teakstweaks.packs.dragoneggtracker.DragonEggTracker;
 import me.teakivy.teakstweaks.packs.durabilityping.DurabilityPing;
 import me.teakivy.teakstweaks.packs.easieraxolotlbreeding.EasierAxolotlBreeding;
 import me.teakivy.teakstweaks.packs.easiermending.EasierMending;
@@ -84,6 +85,9 @@ import me.teakivy.teakstweaks.packs.wanderingtrades.WanderingTrades;
 import me.teakivy.teakstweaks.packs.workstationhighlights.WorkstationHighlights;
 import me.teakivy.teakstweaks.packs.xpmanagement.XPManagement;
 import me.teakivy.teakstweaks.utils.config.Config;
+import me.teakivy.teakstweaks.utils.log.Logger;
+import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 
@@ -117,6 +121,7 @@ public enum TTPack {
     DISPOSAL("disposal", Disposal.class),
     DOUBLE_SHULKER_SHELLS("double-shulker-shells", DoubleShulkerShells.class),
     DRAGON_DROPS("dragon-drops", DragonDrops.class),
+    DRAGON_EGG_TRACKER("dragon-egg-tracker", DragonEggTracker.class, "LuckPerms"),
     DURABILITY_PING("durability-ping", DurabilityPing.class),
     EASIER_AXOLOTL_BREEDING("easier-axolotl-breeding", EasierAxolotlBreeding.class),
     EASIER_MENDING("easier-mending", EasierMending.class),
@@ -175,11 +180,17 @@ public enum TTPack {
 
     private final String key;
     private final Class<? extends BasePack> clazz;
+    private final String requiredPlugin;
     private BasePack pack;
 
     TTPack(String key, Class<? extends BasePack> clazz) {
+        this(key, clazz, null);
+    }
+
+    TTPack(String key, Class<? extends BasePack> clazz, String requiredPlugin) {
         this.key = key;
         this.clazz = clazz;
+        this.requiredPlugin = requiredPlugin;
     }
 
     public void instantiate() {
@@ -214,12 +225,27 @@ public enum TTPack {
 
     public void register() {
         if (getPack().isRegistered()) return;
+        if (!isAvailable()) {
+            ConfigurationSection section = getConfig();
+            if (section != null && section.getBoolean("enabled", false)) {
+                Logger.warning(Component.text("The '" + key + "' pack requires " + requiredPlugin + " and will not be enabled."));
+            }
+            return;
+        }
         if (!isEnabled() && !Config.isDevMode()) return;
         getPack().init();
     }
 
+    /**
+     * Whether the plugin required by this pack is installed and enabled.
+     */
+    public boolean isAvailable() {
+        return requiredPlugin == null || Bukkit.getPluginManager().isPluginEnabled(requiredPlugin);
+    }
+
     public boolean isEnabled() {
-        return getConfig().getBoolean("enabled", false) || Config.isDevMode();
+        ConfigurationSection section = getConfig();
+        return isAvailable() && ((section != null && section.getBoolean("enabled", false)) || Config.isDevMode());
     }
 
     public ItemStack getItem() {
