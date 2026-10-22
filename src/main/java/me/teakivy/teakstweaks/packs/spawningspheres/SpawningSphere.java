@@ -1,5 +1,6 @@
 package me.teakivy.teakstweaks.packs.spawningspheres;
 
+import me.teakivy.teakstweaks.utils.lang.Translations;
 import me.teakivy.teakstweaks.utils.scheduler.RegionScanner;
 import me.teakivy.teakstweaks.utils.scheduler.Scheduler;
 import net.kyori.adventure.text.Component;
@@ -88,7 +89,7 @@ public class SpawningSphere {
         stand.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 999999, 0));
 
         if (isCenter) {
-            stand.customName(Component.translatable("spawning_spheres.center_stand"));
+            stand.customName(Translations.get("spawning_spheres.center_stand"));
             stand.setCustomNameVisible(true);
         }
 

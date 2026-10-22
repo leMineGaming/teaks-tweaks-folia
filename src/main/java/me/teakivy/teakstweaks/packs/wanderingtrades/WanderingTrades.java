@@ -1,5 +1,6 @@
 package me.teakivy.teakstweaks.packs.wanderingtrades;
 
+import me.teakivy.teakstweaks.utils.lang.Translations;
 import me.teakivy.teakstweaks.packs.BasePack;
 import me.teakivy.teakstweaks.utils.UUIDUtils;
 import me.teakivy.teakstweaks.utils.config.Config;
@@ -74,14 +75,14 @@ public class WanderingTrades extends BasePack {
         int radius = config.getInt("radius");
         if (radius < 0) {
             for (Player player : Bukkit.getOnlinePlayers()) {
-                player.sendMessage(Component.translatable("wandering_trader_announcements.announcement_all"));
+                player.sendMessage(Translations.get("wandering_trader_announcements.announcement_all"));
             }
             return;
         }
 
         location.getWorld().getNearbyEntities(location, radius, radius, radius).forEach(entity -> {
             if (entity.getType() == EntityType.PLAYER) {
-                entity.sendMessage(Component.translatable("wandering_trader_announcements.announcement"));
+                entity.sendMessage(Translations.get("wandering_trader_announcements.announcement"));
             }
         });
     }

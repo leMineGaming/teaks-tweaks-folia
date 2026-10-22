@@ -1,5 +1,6 @@
 package me.teakivy.teakstweaks.packs;
 
+import me.teakivy.teakstweaks.utils.lang.Translations;
 import me.teakivy.teakstweaks.TeaksTweaks;
 import me.teakivy.teakstweaks.utils.customitems.CustomItem;
 import me.teakivy.teakstweaks.utils.lang.OldTranslationManager;
@@ -214,7 +215,7 @@ public class BasePack implements Listener {
 	}
 
 	protected Component getText(String key, ComponentLike... resolvers) {
-		return Component.translatable(translatableKey + "." + key, resolvers);
+		return Translations.get(translatableKey + "." + key, resolvers);
 	}
 
 

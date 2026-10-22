@@ -1,5 +1,6 @@
 package me.teakivy.teakstweaks.packs.spawningspheres;
 
+import me.teakivy.teakstweaks.utils.lang.Translations;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
@@ -65,9 +66,9 @@ public enum SphereType {
 
     public Component getName() {
         Component name = switch (this) {
-            case RED -> Component.translatable("spawning_spheres.sphere.red");
-            case BLUE -> Component.translatable("spawning_spheres.sphere.blue");
-            case GREEN -> Component.translatable("spawning_spheres.sphere.green");
+            case RED -> Translations.get("spawning_spheres.sphere.red");
+            case BLUE -> Translations.get("spawning_spheres.sphere.blue");
+            case GREEN -> Translations.get("spawning_spheres.sphere.green");
         };
 
         return name.color(getColor());

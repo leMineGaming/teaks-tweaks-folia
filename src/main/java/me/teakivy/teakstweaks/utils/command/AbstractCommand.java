@@ -1,5 +1,6 @@
 package me.teakivy.teakstweaks.utils.command;
 
+import me.teakivy.teakstweaks.utils.lang.Translations;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
@@ -115,7 +116,7 @@ public abstract class AbstractCommand {
      * @return The translated component
      */
     public Component getText(String key, ComponentLike... args) {
-        return Component.translatable(translationKey + "." + key, args);
+        return Translations.get(translationKey + "." + key, args);
     }
 
     /**
@@ -125,11 +126,11 @@ public abstract class AbstractCommand {
      * @return The translated component
      */
     public Component getError(String key, ComponentLike... args) {
-        return Component.translatable(translationKey + ".error." + key, args);
+        return Translations.get(translationKey + ".error." + key, args);
     }
 
     public Component get(String key, ComponentLike... args) {
-        return Component.translatable(key, args);
+        return Translations.get(key, args);
     }
 
     /**

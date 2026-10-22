@@ -1,5 +1,6 @@
 package me.teakivy.teakstweaks.packs.itemaverages;
 
+import me.teakivy.teakstweaks.utils.lang.Translations;
 import me.teakivy.teakstweaks.packs.BasePack;
 import me.teakivy.teakstweaks.utils.log.Logger;
 import me.teakivy.teakstweaks.utils.register.TTPack;
@@ -99,17 +100,17 @@ public class ItemAverages extends BasePack {
 
         if (!totalItems.isEmpty()) {
             player.sendMessage(newText("<dark_gray>-------------------------"));
-            player.sendMessage(Component.translatable("item_averages.source_production"));
+            player.sendMessage(Translations.get("item_averages.source_production"));
             totalItems.forEach((item, amount) -> {
                 player.sendMessage(
-                        Component.translatable("item_averages.item",
+                        Translations.get("item_averages.item",
                                 insert("amount", amount),
                                 insert("item", item.toString().toLowerCase().replace("_", " "))));
             });
             player.sendMessage(newText("<dark_gray>-------------------------"));
         } else {
             player.sendMessage(newText("<dark_gray>-------------------------"));
-            player.sendMessage(Component.translatable("item_averages.no_items"));
+            player.sendMessage(Translations.get("item_averages.no_items"));
             player.sendMessage(newText("<dark_gray>-------------------------"));
         }
     }
@@ -129,7 +130,7 @@ public class ItemAverages extends BasePack {
 
         Scheduler.runForLater(entity, () -> {
             entity.remove();
-            Logger.info(Component.translatable("item_averages.log_finish"));
+            Logger.info(Translations.get("item_averages.log_finish"));
             shouldStop = true;
         }, glowLength);
     }

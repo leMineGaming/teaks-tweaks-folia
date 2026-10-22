@@ -1,5 +1,6 @@
 package me.teakivy.teakstweaks.packs.back;
 
+import me.teakivy.teakstweaks.utils.lang.Translations;
 import me.teakivy.teakstweaks.packs.BasePack;
 import me.teakivy.teakstweaks.utils.ErrorType;
 import me.teakivy.teakstweaks.utils.permission.Permission;
@@ -33,7 +34,7 @@ public class Back extends BasePack {
         if (backLoc.containsKey(player.getUniqueId())) {
             player.teleportAsync(backLoc.get(player.getUniqueId()));
         } else {
-            player.sendMessage(Component.translatable("back.error.no_back_location"));
+            player.sendMessage(Translations.get("back.error.no_back_location"));
         }
     }
 

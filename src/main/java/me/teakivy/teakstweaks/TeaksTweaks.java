@@ -1,7 +1,7 @@
 package me.teakivy.teakstweaks;
 
+import me.teakivy.teakstweaks.utils.lang.Translations;
 import com.google.gson.Gson;
-import me.teakivy.teakstweaks.generated.Translations;
 import me.teakivy.teakstweaks.utils.*;
 import me.teakivy.teakstweaks.utils.config.Config;
 import me.teakivy.teakstweaks.utils.gui.GUIListener;
@@ -57,7 +57,7 @@ public final class TeaksTweaks extends JavaPlugin implements Listener {
 
         // Update Checker
         if (Config.getBoolean("settings.disable-update-checker")) {
-            Logger.info(Component.translatable("startup.update.disabled"));
+            Logger.info(Translations.get("startup.update.disabled"));
         } else {
             getServer().getPluginManager().registerEvents(new UpdateJoinAlert(), this);
         }
@@ -96,7 +96,7 @@ public final class TeaksTweaks extends JavaPlugin implements Listener {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
-        Logger.info(Component.translatable("startup.plugin.shutting_down"));
+        Logger.info(Translations.get("startup.plugin.shutting_down"));
     }
 
     /**

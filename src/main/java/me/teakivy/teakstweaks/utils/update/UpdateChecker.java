@@ -1,5 +1,6 @@
 package me.teakivy.teakstweaks.utils.update;
 
+import me.teakivy.teakstweaks.utils.lang.Translations;
 import me.teakivy.teakstweaks.TeaksTweaks;
 import me.teakivy.teakstweaks.utils.log.Logger;
 import net.kyori.adventure.text.Component;
@@ -26,8 +27,8 @@ public class UpdateChecker {
         if (hasUpdate()) {
             Version latestVersion = VersionManager.getBestVersion();
             if (latestVersion == null) return;
-            Logger.info(Component.translatable("startup.update.version_available", Argument.string("version", latestVersion.getVersion())));
-            Logger.info(Component.translatable("startup.update.download", Argument.string("url", latestVersion.getUrl())));
+            Logger.info(Translations.get("startup.update.version_available", Argument.string("version", latestVersion.getVersion())));
+            Logger.info(Translations.get("startup.update.download", Argument.string("url", latestVersion.getUrl())));
         }
     }
 }

@@ -1,5 +1,6 @@
 package me.teakivy.teakstweaks.commands;
 
+import me.teakivy.teakstweaks.utils.lang.Translations;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.tree.LiteralCommandNode;
@@ -60,7 +61,7 @@ public class GraveCommand extends AbstractCommand {
         String lastGraveRaw = data.get(Key.get("graves_last"), PersistentDataType.STRING);
         assert lastGraveRaw != null;
         String[] graveResult = lastGraveRaw.split(",");
-        Component text = Component.translatable("graves.last_grave", insert("x", graveResult[0]), insert("y", graveResult[1]), insert("z", graveResult[2]), insert("world", graveResult[3]));
+        Component text = Translations.get("graves.last_grave", insert("x", graveResult[0]), insert("y", graveResult[1]), insert("z", graveResult[2]), insert("world", graveResult[3]));
 
         player.sendMessage(text);
         return Command.SINGLE_SUCCESS;

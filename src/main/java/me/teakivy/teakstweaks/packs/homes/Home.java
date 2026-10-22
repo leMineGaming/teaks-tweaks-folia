@@ -1,5 +1,6 @@
 package me.teakivy.teakstweaks.packs.homes;
 
+import me.teakivy.teakstweaks.utils.lang.Translations;
 import me.teakivy.teakstweaks.utils.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.translation.Argument;
@@ -57,12 +58,12 @@ public class Home {
         if (player == null) return;
 
         if (Homes.onCooldown(player)) {
-            player.sendMessage(Component.translatable("homes.error.on_cooldown", Argument.numeric("time", Homes.getCooldown(player))));
+            player.sendMessage(Translations.get("homes.error.on_cooldown", Argument.numeric("time", Homes.getCooldown(player))));
             return;
         }
 
         player.teleportAsync(loc);
-        player.sendMessage(Component.translatable("homes.teleported", Argument.string("home", name)));
+        player.sendMessage(Translations.get("homes.teleported", Argument.string("home", name)));
     }
 
     public void delete() {

@@ -1,5 +1,6 @@
 package me.teakivy.teakstweaks.packs.afkdisplay;
 
+import me.teakivy.teakstweaks.utils.lang.Translations;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import me.teakivy.teakstweaks.packs.BasePack;
 import me.teakivy.teakstweaks.utils.log.Logger;
@@ -161,31 +162,31 @@ public class AFKDisplay extends BasePack {
     public static void displayAFKMessage(Player player, Boolean isAFK) {
         if (isAFK) {
             if (Config.getBoolean("packs.afk-display.message.display-to-self")) {
-                player.sendMessage(Component.translatable("afk_display.self_now_afk"));
+                player.sendMessage(Translations.get("afk_display.self_now_afk"));
             }
             if (Config.getBoolean("packs.afk-display.message.display-to-everyone")) {
                 for (Player player1 : Bukkit.getOnlinePlayers()) {
                     if (player1.getUniqueId() != player.getUniqueId()) {
-                        player1.sendMessage(Component.translatable("afk_display.other_now_afk", insert("player", player.getName())));
+                        player1.sendMessage(Translations.get("afk_display.other_now_afk", insert("player", player.getName())));
                     }
                 }
             }
             if (Config.getBoolean("packs.afk-display.message.display-to-console")) {
-                Logger.info(Component.translatable("afk_display.other_now_afk", insert("player", player.getName())));
+                Logger.info(Translations.get("afk_display.other_now_afk", insert("player", player.getName())));
             }
         } else {
             if (Config.getBoolean("packs.afk-display.message.display-to-self")) {
-                player.sendMessage(Component.translatable("afk_display.self_not_afk"));
+                player.sendMessage(Translations.get("afk_display.self_not_afk"));
             }
             if (Config.getBoolean("packs.afk-display.message.display-to-everyone")) {
                 for (Player player1 : Bukkit.getOnlinePlayers()) {
                     if (player1.getUniqueId() != player.getUniqueId()) {
-                        player1.sendMessage(Component.translatable("afk_display.other_not_afk", insert("player", player.getName())));
+                        player1.sendMessage(Translations.get("afk_display.other_not_afk", insert("player", player.getName())));
                     }
                 }
             }
             if (Config.getBoolean("packs.afk-display.message.display-to-console")) {
-                Logger.info(Component.translatable("afk_display.other_not_afk", insert("player", player.getName())));
+                Logger.info(Translations.get("afk_display.other_not_afk", insert("player", player.getName())));
             }
         }
     }

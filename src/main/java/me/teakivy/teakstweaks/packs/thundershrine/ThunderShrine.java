@@ -1,5 +1,6 @@
 package me.teakivy.teakstweaks.packs.thundershrine;
 
+import me.teakivy.teakstweaks.utils.lang.Translations;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import me.teakivy.teakstweaks.packs.BasePack;
 import me.teakivy.teakstweaks.utils.Key;
@@ -130,7 +131,7 @@ public class ThunderShrine extends BasePack {
         if (!config.getBoolean("summoning.broadcast-message")) return;
 
         for (Player oPlayer : Bukkit.getOnlinePlayers()) {
-            oPlayer.sendMessage(Component.translatable("thunder_shrine.storm_initialize"));
+            oPlayer.sendMessage(Translations.get("thunder_shrine.storm_initialize"));
         }
     }
 

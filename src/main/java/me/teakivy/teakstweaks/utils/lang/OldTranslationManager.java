@@ -5,6 +5,7 @@ import me.teakivy.teakstweaks.TeaksTweaks;
 import me.teakivy.teakstweaks.utils.Key;
 import me.teakivy.teakstweaks.utils.log.Logger;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.translation.MiniMessageTranslationStore;
@@ -103,41 +104,55 @@ public class OldTranslationManager {
      * Loads all translations from the plugin's data folder and registers them with Adventure.
      */
     private void loadTranslations() {
-//        MiniMessageTranslationStore store = MiniMessageTranslationStore.create(Key.get("translations"));
-//        File translationsFolder = new File(dataFolder, "translations");
-//
-//        for (String lang : supportedLanguages) {
-//            String[] parts = lang.split("_");
-//            String language = parts[0];
-//            String country = parts[1];
-//            Locale locale = new Locale(language, country);
-//
-//            File translationFile = new File(translationsFolder, lang + ".properties");
-//            if (!translationFile.exists()) {
-//                Logger.error(Component.text("Translation file not found on disk: " + translationFile.getAbsolutePath()));
-//                continue;
-//            }
-//
-//            Properties properties = new Properties();
-//            try (InputStreamReader reader = new InputStreamReader(new FileInputStream(translationFile), StandardCharsets.UTF_8)) {
-//                properties.load(reader);
-//            } catch (IOException e) {
-//                Logger.error(Component.text("Error reading translation file: " + translationFile.getAbsolutePath()));
-//                e.printStackTrace();
-//                continue;
-//            }
-//
-//            Map<String, String> map = new HashMap<>();
-//            for (String key : properties.stringPropertyNames()) {
-//                map.put(key, properties.getProperty(key));
-//            }
-//
-//            store.registerAll(locale, map);
-//            Logger.info(Component.text("Loaded translations for " + lang));
-//        }
-//
-//        GlobalTranslator.translator().addSource(store);
-//        Logger.info(Component.text("All translations registered with GlobalTranslator."));
+        MiniMessageTranslationStore store = MiniMessageTranslationStore.create(Key.get("translations"));
+        File translationsFolder = new File(dataFolder, "translations");
+
+        for (String lang : supportedLanguages) {
+            String[] parts = lang.split("_");
+            Locale locale = new Locale(parts[0], parts.length > 1 ? parts[1] : "");
+
+            File translationFile = new File(translationsFolder, lang + ".properties");
+            if (!translationFile.exists()) {
+                Logger.error(Component.text("Translation file not found on disk: " + translationFile.getAbsolutePath()));
+                continue;
+            }
+
+            Properties properties = new Properties();
+            try (InputStreamReader reader = new InputStreamReader(new FileInputStream(translationFile), StandardCharsets.UTF_8)) {
+                properties.load(reader);
+            } catch (IOException e) {
+                Logger.error(Component.text("Error reading translation file: " + translationFile.getAbsolutePath()));
+                e.printStackTrace();
+                continue;
+            }
+
+            Map<String, String> map = new HashMap<>();
+            for (String key : properties.stringPropertyNames()) {
+                if (key.equalsIgnoreCase("meta.modified")) continue;
+                map.put(key, properties.getProperty(key));
+            }
+
+            store.registerAll(locale, map);
+        }
+
+        store.defaultLocale(new Locale("en", "US"));
+        GlobalTranslator.translator().addSource(store);
+        Logger.info(Component.text("Registered " + supportedLanguages.size() + " translation locales."));
+    }
+
+    /**
+     * Resolve a translatable component using the plugin's own translations.
+     * Falls back to the raw translatable component when no translation is registered.
+     */
+    public static Component getComponent(String localeName, String key, ComponentLike... args) {
+        TranslatableComponent translatable = Component.translatable(key, args);
+        if (localeName == null) return translatable;
+
+        String[] parts = localeName.split("_");
+        Locale locale = new Locale(parts[0], parts.length > 1 ? parts[1] : "");
+
+        Component resolved = GlobalTranslator.translator().translate(translatable, locale);
+        return resolved == null ? translatable : resolved;
     }
 
     private Properties loadPropertiesFromJar(String resourcePath) {
