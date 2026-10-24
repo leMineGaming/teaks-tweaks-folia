@@ -1,0 +1,4 @@
+name: No Elytra
+description: >
+  Prevents players with the 'teakstweaks.no-elytra' permission from using an elytra.
+forbidden: <red>You are not allowed to use an elytra.

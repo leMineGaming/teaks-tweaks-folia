@@ -760,6 +760,14 @@ packs:
   nether-portal-coords:
     enabled: false
 
+  # No Elytra
+  # Prevents players with the permission below from using an elytra.
+  #
+  # Permissions:
+  # teakstweaks.no-elytra
+  no-elytra:
+    enabled: false
+
   # Painting Picker
   # Use a stonecutter to choose a painting's variant.
   painting-picker:
